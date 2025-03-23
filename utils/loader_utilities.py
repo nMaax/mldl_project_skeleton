@@ -45,19 +45,20 @@ def download_and_unzip(url="http://cs231n.stanford.edu/tiny-imagenet-200.zip", e
 
 def get_default_transforms():
     return transforms.Compose([
+        transforms.Resize((224, 224)),  # Resize to fit the input dimensions of the network
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
     ])
 
-def get_dataloaders(data_dir="data/tiny-imagenet-200", transform=get_default_transforms(), batch_size_train=32, batch_size_test=16, num_train_workers=8):
+def get_dataloaders(data_dir="data/tiny-imagenet-200", transform=get_default_transforms(), batch_size_train=32, batch_size_val=16, num_train_workers=8):
     
     train_dataset = ImageFolder(root=os.path.join(data_dir, "train"), transform=transform)
-    test_dataset = ImageFolder(root=os.path.join(data_dir, "val"), transform=transform)  # 'test' should be 'val'
-
+    val_dataset = ImageFolder(root=os.path.join(data_dir, "val"), transform=transform)
+    
     train_loader = DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True, num_workers=num_train_workers)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size_test, shuffle=False)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size_val, shuffle=False)
 
-    return train_loader, test_loader
+    return train_loader, val_loader
 
 def denormalize(image):
     """Denormalizes an ImageNet tensor image for visualization."""

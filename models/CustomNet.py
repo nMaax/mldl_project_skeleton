@@ -2,52 +2,64 @@ import torch
 from torch import nn
 
 class CustomNet(nn.Module):
-    def __init__(self, num_classes=200):  # Add num_classes as an argument
+    def __init__(self, input_shape=(3, 224, 224), num_classes=200, dropout_rate=0.3):  # Add num_classes as an argument
         super(CustomNet, self).__init__()
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, padding=1, stride=1)
-        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1, stride=1)
-        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1, stride=1)
-        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, padding=1, stride=1)
-        self.pool4 = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv5 = nn.Conv2d(256, 512, kernel_size=3, padding=0, stride=1)
-        self.pool5 = nn.MaxPool2d(kernel_size=2, stride=2)
-
+        
+        self.input_channels = input_shape[0]  # Assuming input_shape is in (C, H, W) format
+        self.num_classes = num_classes
+        
+        # Use nn.Sequential to stack conv layers and pooling layers
         self.convNet = nn.Sequential(
-            self.conv1,
+            nn.Conv2d(self.input_channels, 32, kernel_size=3, padding=1, stride=1),
             nn.ReLU(),
-            self.pool1,
-            self.conv2,
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(32, 64, kernel_size=3, padding=1, stride=1),
             nn.ReLU(),
-            self.pool2,
-            self.conv3,
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(64, 128, kernel_size=3, padding=1, stride=1),
             nn.ReLU(),
-            self.pool3,
-            self.conv4,
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(128, 256, kernel_size=3, padding=1, stride=1),
             nn.ReLU(),
-            self.pool4,
-            self.conv5,
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Conv2d(256, 512, kernel_size=3, padding=0, stride=1),
             nn.ReLU(),
-            self.pool5,
-            nn.Flatten(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            
+            nn.Flatten(),  # Flatten the output before passing to the fully connected layer
+        )
+        
+        # Calculate the input size for the fully connected layer
+        fc1_input_size = self._calculate_fc1_input_size(input_shape)
+        
+        # Define the fully connected layers
+        self.fcNet = nn.Sequential(
+            # Multiple fully connected layers
+            nn.Linear(fc1_input_size, 1024),  # First fully connected layer
+            nn.Dropout(p=dropout_rate),
+            nn.Linear(1024, 512),  # Second fully connected layer
+            nn.Dropout(p=dropout_rate),
+            nn.Linear(512, num_classes),  # Final fully connected layer for output
         )
 
-        # Calculate input size for fc1
+    def _calculate_fc1_input_size(self, input_shape):
+        # Dummy input to calculate the shape after convolutions and pooling
         with torch.no_grad():
-            x = torch.randn(1, 3, 224, 224)  # Input shape
-            x = self.convNet(x)
-            print(f"Input to the FFNN of size: {x.shape[1]}")
-            fc1_input_size = x.shape[1]
-
-        self.fc1 = nn.Linear(fc1_input_size, num_classes)
-
-        self.net = nn.Sequential(
-            self.convNet,
-            self.fc1
-        )
+            x = torch.randn(1, *input_shape)  # Create a dummy input with the provided input shape
+            x = self.convNet(x)  # Pass through convNet (Sequential of conv layers)
+            print(f"Input to the Fully Connected layer is of size: {x.shape[1]}")
+            return x.shape[1]
 
     def forward(self, x):
-        x = self.net(x)
+        x = self.convNet(x)  # Pass through convNet (with flattening)
+        x = self.fcNet(x)  # Pass through fcNet (with dropout)
         return x
+
+if __name__ == "__main__":
+    # Example of instantiating the model
+    model = CustomNet(input_shape=(3, 224, 224), num_classes=200)
+    print(model)
