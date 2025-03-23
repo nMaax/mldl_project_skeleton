@@ -1,7 +1,8 @@
 requests
+tqdm
+pyyaml
 numpy
+matplotlib
 torch
 torchvision
-matplotlib
 wandb
-tqdm

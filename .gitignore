@@ -3,6 +3,9 @@ checkpoints/
 data/
 datasets/
 
+# Ignore wandb processes
+wandb/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

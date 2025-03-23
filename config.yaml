@@ -1,0 +1,15 @@
+data_info:
+  image_size: [224, 224]
+  image_channels: 3
+  num_classes: 200
+
+train:
+  epochs: 1
+  batch_size: 32
+  learning_rate: 0.01
+  num_train_workers: 8
+
+val:
+  batch_size: 16
+
+device: 'cuda'

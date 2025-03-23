@@ -1,4 +1,6 @@
-def train(epoch, model, train_loader, criterion, optimizer, verbose=False):
+import wandb
+
+def train(model, train_loader, criterion, optimizer, verbose=False):
     model.train()
     if verbose:
       print("Setted model in train mode")
@@ -24,9 +26,13 @@ def train(epoch, model, train_loader, criterion, optimizer, verbose=False):
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
+        if wandb.run is not None:
+          wandb.log({"batch_loss": loss.item(), "batch_accuracy": 100. * predicted.eq(targets).sum().item() / targets.size(0)})
 
-    if verbose:
-      print(f"Finished training epoch {epoch}")
     train_loss = running_loss / len(train_loader)
     train_accuracy = 100. * correct / total
-    print(f'Train Epoch: {epoch} Loss: {train_loss:.6f} Acc: {train_accuracy:.2f}%')
+
+    if wandb.run is not None:
+      wandb.log({"epoch_train_loss": train_loss, "epoch_train_accuracy": train_accuracy})
+
+    return train_loss, train_accuracy

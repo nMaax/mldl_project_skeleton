@@ -1,3 +1,6 @@
+import torch
+import wandb
+
 # Validation loop
 def validate(model, val_loader, criterion, verbose=False):
     if verbose:
@@ -28,5 +31,7 @@ def validate(model, val_loader, criterion, verbose=False):
     val_loss = val_loss / len(val_loader)
     val_accuracy = 100. * correct / total
 
-    print(f'Validation Loss: {val_loss:.6f} Acc: {val_accuracy:.2f}%')
-    return val_accuracy
+    if wandb.run is not None:
+      wandb.log({"epoch_val_loss": val_loss, "epoch_val_accuracy": val_accuracy})
+
+    return val_loss, val_accuracy
