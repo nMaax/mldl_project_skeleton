@@ -10,7 +10,7 @@ from torchvision.datasets import ImageFolder
 import matplotlib.pyplot as plt
 
 # Define dataset download and extraction function
-def download_and_unzip(url="http://cs231n.stanford.edu/tiny-imagenet-200.zip", extract_path="data/"):
+def download_and_unzip(url="http://cs231n.stanford.edu/tiny-imagenet-200.zip", extract_path="data/", verbose=True):
     """Downloads and extracts dataset if not already present."""
     dataset_folder = os.path.join(extract_path, "tiny-imagenet-200")
     
@@ -25,17 +25,25 @@ def download_and_unzip(url="http://cs231n.stanford.edu/tiny-imagenet-200.zip", e
             total_size_in_bytes = int(response.headers.get('content-length', 0))  # Get the total size of the content
             chunk_size = 1024  # 1k chunk size for the download
             
-            # Use tqdm to show download progress
-            with tqdm(total=total_size_in_bytes, unit='B', unit_scale=True, desc="Downloading") as pbar:
+            # Use tqdm to show download progress if verbose is True
+            if verbose:
+                with tqdm(total=total_size_in_bytes, unit='B', unit_scale=True, desc="Downloading") as pbar:
+                    data = BytesIO()
+                    for chunk in response.iter_content(chunk_size=chunk_size):
+                        data.write(chunk)
+                        pbar.update(len(chunk))  # Update the progress bar by the chunk size
+            else:
                 data = BytesIO()
                 for chunk in response.iter_content(chunk_size=chunk_size):
                     data.write(chunk)
-                    pbar.update(len(chunk))  # Update the progress bar by the chunk size
                 
-                data.seek(0)  # Move the cursor to the beginning of the BytesIO object
-                with zipfile.ZipFile(data, 'r') as zip_ref:
+            data.seek(0)  # Move the cursor to the beginning of the BytesIO object
+            with zipfile.ZipFile(data, 'r') as zip_ref:
+                if verbose:
                     for file in tqdm(zip_ref.infolist(), desc="Extracting"):
                         zip_ref.extract(file, extract_path)
+                else:
+                    zip_ref.extractall(extract_path)
             print(f"Dataset extracted to {extract_path}")
         else:
             print("Failed to download dataset.")
