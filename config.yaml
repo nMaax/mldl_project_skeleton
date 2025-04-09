@@ -4,7 +4,7 @@ data_info:
   num_classes: 200
 
 train:
-  epochs: 1
+  epochs: 5
   batch_size: 32
   learning_rate: 0.01
   num_train_workers: 2
